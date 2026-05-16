@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth.store'
 import {
   LayoutDashboard, Megaphone, Users, Monitor, Calendar,
-  Swords, ClipboardList, Trophy, LogOut, ChevronRight, Globe2,
+  Swords, ClipboardList, Trophy, LogOut, ChevronRight, Globe2, UserCheck,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 
@@ -12,6 +12,7 @@ const superadminNav = [
   { to: '/campaigns',   label: 'Campañas',       icon: Megaphone },
   { to: '/users',       label: 'Usuarios',       icon: Users },
   { to: '/totems',      label: 'Tótems',         icon: Monitor },
+  { to: '/employees',   label: 'Empleados',      icon: UserCheck },
   { to: '/phases',      label: 'Fases',          icon: Calendar },
   { to: '/matches',     label: 'Partidos',       icon: Swords },
   { to: '/registrations', label: 'Registros',   icon: ClipboardList },
@@ -21,6 +22,7 @@ const superadminNav = [
 const campaignAdminNav = [
   { to: '/dashboard',    label: 'Dashboard',     icon: LayoutDashboard },
   { to: '/totems',       label: 'Mis Tótems',    icon: Monitor },
+  { to: '/employees',    label: 'Empleados',     icon: UserCheck },
   { to: '/registrations',label: 'Participantes', icon: ClipboardList },
   { to: '/winners',      label: 'Ganadores',     icon: Trophy },
 ]

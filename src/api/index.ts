@@ -226,6 +226,23 @@ export const registrationsApi = {
   },
 };
 
+// ── Employees ──────────────────────────────────────────────────────
+export const employeesApi = {
+  list: (campaign_id?: number) => {
+    const params: Record<string, any> = {};
+    if (campaign_id !== undefined && campaign_id !== null) {
+      params.campaign_id = campaign_id;
+    }
+    return api.get("/employees", { params }).then((r) => r.data);
+  },
+  create: (data: any) => api.post("/employees", data).then((r) => r.data),
+  update: (id: string, data: any) =>
+    api.put(`/employees/${id}`, data).then((r) => r.data),
+  delete: (id: string) => api.delete(`/employees/${id}`).then((r) => r.data),
+  bulkCreate: (data: { codes: string[]; campaign_id: number }) =>
+    api.post("/employees/bulk", data).then((r) => r.data),
+};
+
 // ── Participants ──────────────────────────────────────────────────
 export const participantsApi = {
   list: (params: { campaign_id?: number; search?: string }) => {

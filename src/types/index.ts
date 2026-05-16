@@ -18,6 +18,8 @@ export interface Campaign {
   logo_url?: string
   bg_screen1_url?: string
   bg_screen2_url?: string
+  web_bg_url?: string
+  control_employees: boolean
   active: boolean
   created_at: string
 }
@@ -109,6 +111,21 @@ export interface Registration {
   totem?: Totem
   phase?: Phase
   predictions?: Prediction[]
+}
+
+export interface Employee {
+  id: string
+  code: string
+  nombres: string
+  apellidos?: string
+  email?: string
+  telefono?: string
+  factura?: string
+  campaign_id: number
+  active: boolean
+  created_at: string
+  campaign?: Campaign
+  registrations?: Registration[]
 }
 
 export interface Stats {

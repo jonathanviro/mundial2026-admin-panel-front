@@ -7,6 +7,7 @@ import DashboardPage from '@/pages/dashboard/DashboardPage'
 import CampaignsPage from '@/pages/campaigns/CampaignsPage'
 import UsersPage from '@/pages/users/UsersPage'
 import TotemsPage from '@/pages/totems/TotemsPage'
+import EmployeesPage from '@/pages/employees/EmployeesPage'
 import PhasesPage from '@/pages/phases/PhasesPage'
 import MatchesPage from '@/pages/matches/MatchesPage'
 import { RegistrationsPage, WinnersPage } from '@/pages/registrations/RegistrationsPage'
@@ -33,6 +34,7 @@ export default function App() {
 
           <Route path="/dashboard"    element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
           <Route path="/totems"       element={<PrivateRoute><TotemsPage /></PrivateRoute>} />
+          <Route path="/employees"    element={<PrivateRoute><EmployeesPage /></PrivateRoute>} />
           <Route path="/phases"       element={<PrivateRoute><PhasesPage /></PrivateRoute>} />
           <Route path="/matches"      element={<PrivateRoute superadminOnly><MatchesPage /></PrivateRoute>} />
           <Route path="/registrations" element={<PrivateRoute><RegistrationsPage /></PrivateRoute>} />

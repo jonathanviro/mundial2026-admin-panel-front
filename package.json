@@ -22,10 +22,11 @@
     "react-hook-form": "^7.75.0",
     "react-router-dom": "^7.15.0",
     "recharts": "^3.8.1",
+    "serve": "^14.2.0",
     "tailwind-merge": "^3.5.0",
+    "xlsx": "^0.18.5",
     "zod": "^4.4.3",
-    "zustand": "^5.0.13",
-    "serve": "^14.2.0"
+    "zustand": "^5.0.13"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
