@@ -47,6 +47,7 @@ function ScoreInput({
 export default function MatchesPage() {
   const { user } = useAuthStore();
   const isSuperAdmin = user?.role === "superadmin";
+  const canEdit = isSuperAdmin || user?.role === "campaign_admin";
   const qc = useQueryClient();
   const [selectedPhase, setSelectedPhase] = useState<number | null>(null);
   const [scores, setScores] = useState<
@@ -249,7 +250,7 @@ export default function MatchesPage() {
                 ))}
               </Select>
             )}
-            {isSuperAdmin && (
+            {canEdit && (
               <Button
                 variant="secondary"
                 onClick={() => {
@@ -701,7 +702,7 @@ export default function MatchesPage() {
                               {m.team_local || "?"}
                             </td>
                             <td className="px-4 py-3 border-b border-white/[0.04]">
-                              {isSuperAdmin && !m.finished ? (
+                              {canEdit && !m.finished ? (
                                 <div className="flex items-center gap-2">
                                   <ScoreInput
                                     value={s.l}
@@ -753,7 +754,7 @@ export default function MatchesPage() {
                             </td>
                             <td className="px-4 py-3 border-b border-white/[0.04]">
                               <div className="flex gap-2">
-                                {isSuperAdmin && !m.finished && (
+                                {canEdit && !m.finished && (
                                   <Button
                                     size="sm"
                                     variant="success"
@@ -768,7 +769,7 @@ export default function MatchesPage() {
                                     Guardar
                                   </Button>
                                 )}
-                                {isSuperAdmin && (
+                                {canEdit && (
                                   <Button
                                     size="sm"
                                     variant="secondary"
@@ -777,7 +778,7 @@ export default function MatchesPage() {
                                     Editar Equipos
                                   </Button>
                                 )}
-                                {m.finished && isSuperAdmin && (
+                                {m.finished && canEdit && (
                                   <span className="text-xs text-[#7a8899]">
                                     Completado
                                   </span>
