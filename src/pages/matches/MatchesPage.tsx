@@ -147,6 +147,7 @@ export default function MatchesPage() {
     team_visitor: "",
     flag_local: "",
     flag_visitor: "",
+    date: "",
   });
   const [teamError, setTeamError] = useState("");
 
@@ -157,6 +158,7 @@ export default function MatchesPage() {
       team_visitor: match.team_visitor || "",
       flag_local: match.flag_local || "",
       flag_visitor: match.flag_visitor || "",
+      date: match.date || "",
     });
     setTeamError("");
     setEditTeamModal(true);
@@ -824,6 +826,18 @@ export default function MatchesPage() {
             <p className="text-sm text-[#7a8899]">
               Partido #{editingMatch?.match_number}
             </p>
+            <div>
+              <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
+                Fecha del partido
+              </label>
+              <Input
+                type="date"
+                value={teamForm.date}
+                onChange={(e) =>
+                  setTeamForm({ ...teamForm, date: e.target.value })
+                }
+              />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
@@ -843,7 +857,7 @@ export default function MatchesPage() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
-                  Banderas
+                  Bandera
                 </label>
                 <Input
                   value={teamForm.flag_local}
@@ -872,7 +886,7 @@ export default function MatchesPage() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
-                  Banderas
+                  Bandera
                 </label>
                 <Input
                   value={teamForm.flag_visitor}

@@ -49,6 +49,7 @@ export interface Phase {
   name: string
   date_from?: string
   date_to?: string
+  daily_predictions?: boolean
   active: boolean
   published: boolean
   version: number
@@ -121,6 +122,8 @@ export interface Employee {
   email?: string
   telefono?: string
   factura?: string
+  password?: string | null
+  password_generated?: string
   campaign_id: number
   active: boolean
   created_at: string

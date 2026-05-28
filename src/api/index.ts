@@ -240,7 +240,13 @@ export const employeesApi = {
     api.put(`/employees/${id}`, data).then((r) => r.data),
   delete: (id: string) => api.delete(`/employees/${id}`).then((r) => r.data),
   bulkCreate: (data: { codes: string[]; campaign_id: number }) =>
-    api.post("/employees/bulk", data).then((r) => r.data),
+    api.post("/employees/bulk", data, { timeout: 180000 }).then((r) => r.data),
+  resetPassword: (id: string) =>
+    api.post(`/employees/${id}/reset-password`).then((r) => r.data),
+  cleanupDuplicates: (campaign_id: number) =>
+    api.post("/employees/cleanup-duplicates", { campaign_id }, { timeout: 60000 }).then((r) => r.data),
+  exportPasswords: (campaign_id: number) =>
+    api.post("/employees/export-passwords", { campaign_id }, { timeout: 60000 }).then((r) => r.data),
 };
 
 // ── Participants ──────────────────────────────────────────────────

@@ -16,7 +16,7 @@ export default function PhasesPage() {
   const qc = useQueryClient()
   const [modal, setModal] = useState(false)
   const [error, setError] = useState('')
-  const [form, setForm] = useState({ number: '1', campaign_id: '', date_from: '', date_to: '', name: '' })
+  const [form, setForm] = useState({ number: '1', campaign_id: '', date_from: '', date_to: '', name: '', daily_predictions: false })
 
   const [selectedCampaign, setSelectedCampaign] = useState<number | undefined>(undefined)
   
@@ -47,6 +47,7 @@ export default function PhasesPage() {
         ...data,
         number: phaseNumber,
         campaign_id: parseInt(data.campaign_id),
+        daily_predictions: data.daily_predictions === true || data.daily_predictions === 'true',
       }
       // Opción A: Si no se proporciona name, usar el automático
       // Opción B: Si se proporciona name, usarlo
@@ -128,6 +129,7 @@ export default function PhasesPage() {
                     {p.date_from && <span>📅 {formatDateShort(p.date_from)} → {formatDateShort(p.date_to)}</span>}
                     <span>🎯 {p.predictions_required} predicciones</span>
                     <span>✅ Mín. {p.min_correct_to_win} acierto{p.min_correct_to_win > 1 ? 's' : ''} para ganar</span>
+                    {p.daily_predictions && <Badge variant="info">Diario</Badge>}
                     <span className="font-mono">v{p.version}</span>
                   </div>
                 </div>
@@ -193,6 +195,18 @@ export default function PhasesPage() {
               {campaigns.map((c: Campaign) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </Select>
           )}
+          <label className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.04] border border-white/10 cursor-pointer hover:bg-white/[0.06] transition-colors">
+            <input
+              type="checkbox"
+              checked={form.daily_predictions}
+              onChange={e => setForm(f => ({ ...f, daily_predictions: e.target.checked }))}
+              className="w-4 h-4 rounded border-white/20 bg-white/10 accent-accent"
+            />
+            <div>
+              <p className="text-sm font-medium text-[#e8eaf0]">Predicciones diarias</p>
+              <p className="text-xs text-[#7a8899]">Los empleados predicen partidos del día siguiente (solo web)</p>
+            </div>
+          </label>
           <div className="grid grid-cols-2 gap-3">
             <Input label="Fecha inicio" type="date" value={form.date_from} onChange={e => setForm(f => ({ ...f, date_from: e.target.value }))} />
             <Input label="Fecha fin" type="date" value={form.date_to} onChange={e => setForm(f => ({ ...f, date_to: e.target.value }))} />
