@@ -47,6 +47,7 @@ function ScoreInput({
 export default function MatchesPage() {
   const { user } = useAuthStore();
   const isSuperAdmin = user?.role === "superadmin";
+  const canEdit = isSuperAdmin || user?.role === "campaign_admin";
   const qc = useQueryClient();
   const [selectedPhase, setSelectedPhase] = useState<number | null>(null);
   const [scores, setScores] = useState<
@@ -147,6 +148,7 @@ export default function MatchesPage() {
     team_visitor: "",
     flag_local: "",
     flag_visitor: "",
+    date: "",
   });
   const [teamError, setTeamError] = useState("");
 
@@ -157,6 +159,7 @@ export default function MatchesPage() {
       team_visitor: match.team_visitor || "",
       flag_local: match.flag_local || "",
       flag_visitor: match.flag_visitor || "",
+      date: match.date || "",
     });
     setTeamError("");
     setEditTeamModal(true);
@@ -247,7 +250,7 @@ export default function MatchesPage() {
                 ))}
               </Select>
             )}
-            {isSuperAdmin && (
+            {canEdit && (
               <Button
                 variant="secondary"
                 onClick={() => {
@@ -699,7 +702,7 @@ export default function MatchesPage() {
                               {m.team_local || "?"}
                             </td>
                             <td className="px-4 py-3 border-b border-white/[0.04]">
-                              {isSuperAdmin && !m.finished ? (
+                              {canEdit && !m.finished ? (
                                 <div className="flex items-center gap-2">
                                   <ScoreInput
                                     value={s.l}
@@ -751,7 +754,7 @@ export default function MatchesPage() {
                             </td>
                             <td className="px-4 py-3 border-b border-white/[0.04]">
                               <div className="flex gap-2">
-                                {isSuperAdmin && !m.finished && (
+                                {canEdit && !m.finished && (
                                   <Button
                                     size="sm"
                                     variant="success"
@@ -766,7 +769,7 @@ export default function MatchesPage() {
                                     Guardar
                                   </Button>
                                 )}
-                                {isSuperAdmin && (
+                                {canEdit && (
                                   <Button
                                     size="sm"
                                     variant="secondary"
@@ -775,7 +778,7 @@ export default function MatchesPage() {
                                     Editar Equipos
                                   </Button>
                                 )}
-                                {m.finished && isSuperAdmin && (
+                                {m.finished && canEdit && (
                                   <span className="text-xs text-[#7a8899]">
                                     Completado
                                   </span>
@@ -824,6 +827,18 @@ export default function MatchesPage() {
             <p className="text-sm text-[#7a8899]">
               Partido #{editingMatch?.match_number}
             </p>
+            <div>
+              <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
+                Fecha del partido
+              </label>
+              <Input
+                type="date"
+                value={teamForm.date}
+                onChange={(e) =>
+                  setTeamForm({ ...teamForm, date: e.target.value })
+                }
+              />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
@@ -843,7 +858,7 @@ export default function MatchesPage() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
-                  Banderas
+                  Bandera
                 </label>
                 <Input
                   value={teamForm.flag_local}
@@ -872,7 +887,7 @@ export default function MatchesPage() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
-                  Banderas
+                  Bandera
                 </label>
                 <Input
                   value={teamForm.flag_visitor}
