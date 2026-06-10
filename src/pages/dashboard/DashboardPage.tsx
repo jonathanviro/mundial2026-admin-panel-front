@@ -118,7 +118,7 @@ export default function DashboardPage() {
           <table className="w-full text-sm">
             <thead>
               <tr>
-                {['Tótem', 'Ubicación', 'Estado', 'Sincronizado', 'Versión', 'Último heartbeat', 'Última sync'].map(h => (
+                {['Tótem', 'Ubicación', 'Estado', 'Sincronizado', 'Versión', 'Último heartbeat', 'Última sync', 'Registros'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase tracking-wider border-b border-white/[0.06]">{h}</th>
                 ))}
               </tr>
@@ -150,6 +150,9 @@ export default function DashboardPage() {
                     </td>
                     <td className="px-4 py-3 border-b border-white/[0.04] text-[#7a8899] text-xs">{timeAgo(t.last_heartbeat)}</td>
                     <td className="px-4 py-3 border-b border-white/[0.04] text-[#7a8899] text-xs">{timeAgo(t.last_sync)}</td>
+                    <td className="px-4 py-3 border-b border-white/[0.04] text-[#e8eaf0] font-mono text-sm">
+                      {(t as any).registrations_count?.toLocaleString() || '0'}
+                    </td>
                   </tr>
                 )
               })}

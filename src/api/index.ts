@@ -130,6 +130,8 @@ export const totemsApi = {
   create: (data: any) => api.post("/totems", data).then((r) => r.data),
   update: (id: number, data: any) =>
     api.put(`/totems/${id}`, data).then((r) => r.data),
+  logs: (id: number, limit?: number) =>
+    api.get(`/totems/${id}/logs`, { params: { limit } }).then((r) => r.data),
 };
 
 // ── Phases ────────────────────────────────────────────────────────

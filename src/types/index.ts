@@ -40,6 +40,16 @@ export interface Totem {
 
 export interface TotemStatus extends Totem {
   online: boolean
+  registrations_count?: number
+}
+
+export interface TotemSyncLog {
+  id: number
+  totem_id: number
+  event: string
+  details?: string | null
+  registros: number
+  created_at: string
 }
 
 export interface Phase {

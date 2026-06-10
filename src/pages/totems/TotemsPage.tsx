@@ -4,9 +4,9 @@ import { totemsApi, campaignsApi } from '@/api'
 import { useAuthStore } from '@/store/auth.store'
 import { Button, Card, CardHeader, CardBody, Badge, Modal, Input, Select, Alert, PageLoader, EmptyState } from '@/components/ui'
 import { PageHeader } from '@/components/layout/Layout'
-import { Plus, Monitor, Wifi, WifiOff, RefreshCw, Pencil } from 'lucide-react'
+import { Plus, Monitor, Wifi, WifiOff, RefreshCw, Pencil, History } from 'lucide-react'
 import { timeAgo } from '@/lib/utils'
-import type { TotemStatus, Campaign, Totem } from '@/types'
+import type { TotemStatus, TotemSyncLog, Campaign, Totem } from '@/types'
 
 export default function TotemsPage() {
   const { user } = useAuthStore()
@@ -19,6 +19,15 @@ export default function TotemsPage() {
   const [editingTotem, setEditingTotem] = useState<Totem | null>(null)
   const [editForm, setEditForm] = useState({ name: '', location: '', active: true })
   const [editError, setEditError] = useState('')
+
+  const [logModal, setLogModal] = useState(false)
+  const [logTotem, setLogTotem] = useState<TotemStatus | null>(null)
+
+  const { data: logs = [] } = useQuery({
+    queryKey: ['totem-logs', logTotem?.id],
+    queryFn: () => totemsApi.logs(logTotem!.id),
+    enabled: !!logTotem,
+  })
 
   const [selectedCampaign, setSelectedCampaign] = useState<number | undefined>(undefined)
   
@@ -138,14 +147,21 @@ export default function TotemsPage() {
                     <span className="text-[#7a8899]">Última sync</span>
                     <span className="text-xs text-right">{timeAgo(t.last_sync)}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#7a8899]">Registros</span>
+                    <span className="font-mono">{(t as any).registrations_count?.toLocaleString() || '0'}</span>
+                  </div>
                 </div>
-                {isSuperAdmin && (
-                  <div className="mt-3 pt-3 border-t border-white/[0.06]">
-                    <Button size="sm" variant="secondary" className="w-full" onClick={() => openEdit(t)}>
+                <div className="mt-3 pt-3 border-t border-white/[0.06] flex gap-2">
+                  {isSuperAdmin && (
+                    <Button size="sm" variant="secondary" className="flex-1" onClick={() => openEdit(t)}>
                       <Pencil className="w-3 h-3" /> Editar
                     </Button>
-                  </div>
-                )}
+                  )}
+                  <Button size="sm" variant="ghost" className="flex-1" onClick={() => { setLogTotem(t); setLogModal(true); }}>
+                    <History className="w-3 h-3" /> Historial
+                  </Button>
+                </div>
               </CardBody>
             </Card>
           ))}
@@ -194,6 +210,47 @@ export default function TotemsPage() {
             <Button type="button" variant="secondary" onClick={() => { setEditModal(false); setEditingTotem(null); setEditError('') }} className="flex-1">Cancelar</Button>
           </div>
         </form>
+      </Modal>
+
+      {/* History modal */}
+      <Modal open={logModal} onClose={() => { setLogModal(false); setLogTotem(null) }}
+        title={`Historial Sync — ${logTotem?.name || ''}`}
+      >
+        <div className="max-h-[70vh] overflow-y-auto">
+          {logs.length === 0 ? (
+            <p className="text-sm text-[#7a8899] text-center py-8">Sin registros de sincronización</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/[0.06]">
+                  <th className="text-left px-2 py-2 text-xs font-semibold text-[#7a8899] uppercase">Fecha</th>
+                  <th className="text-left px-2 py-2 text-xs font-semibold text-[#7a8899] uppercase">Evento</th>
+                  <th className="text-left px-2 py-2 text-xs font-semibold text-[#7a8899] uppercase">Detalle</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(logs as TotemSyncLog[]).map((log) => (
+                  <tr key={log.id} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
+                    <td className="px-2 py-2 text-xs text-[#7a8899] whitespace-nowrap">
+                      {new Date(log.created_at).toLocaleString('es-EC')}
+                    </td>
+                    <td className="px-2 py-2">
+                      <Badge variant={log.event === 'error' ? 'danger' : log.event === 'push' ? 'success' : log.event === 'heartbeat' ? 'info' : 'neutral'}>
+                        {log.event}
+                      </Badge>
+                    </td>
+                    <td className="px-2 py-2 text-xs text-[#e8eaf0]">
+                      {log.details || `${log.registros} registros`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+        <div className="mt-4">
+          <Button className="w-full" onClick={() => { setLogModal(false); setLogTotem(null) }}>Cerrar</Button>
+        </div>
       </Modal>
     </div>
   )
