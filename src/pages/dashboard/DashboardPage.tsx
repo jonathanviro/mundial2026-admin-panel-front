@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { totemsApi, registrationsApi, phasesApi, campaignsApi } from '@/api'
 import { useAuthStore } from '@/store/auth.store'
 import { StatCard, Card, CardHeader, CardBody, Badge, PageLoader, Select } from '@/components/ui'
 import { PageHeader } from '@/components/layout/Layout'
-import { Monitor, Users, Trophy, Calendar, Wifi, WifiOff, RefreshCw } from 'lucide-react'
+import { Monitor, Users, Trophy, Calendar, Wifi, WifiOff, RefreshCw, ArrowUpDown } from 'lucide-react'
 import { timeAgo, formatDate } from '@/lib/utils'
 import type { TotemStatus, Campaign } from '@/types'
 
@@ -12,6 +12,8 @@ export default function DashboardPage() {
   const { user } = useAuthStore()
   const isSuperAdmin = user?.role === 'superadmin'
   const [selectedCampaign, setSelectedCampaign] = useState<number | undefined>(undefined)
+  const [sortCol, setSortCol] = useState<string>('name')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   
   const { data: campaigns = [] } = useQuery({
     queryKey: ['campaigns'],
@@ -43,6 +45,40 @@ export default function DashboardPage() {
   const activePhase = phases.find((p: any) => p.active)
   const onlineCount = totems.filter((t: TotemStatus) => t.online).length
   const syncedCount = totems.filter((t: TotemStatus) => t.version_data === (activePhase?.version || 0)).length
+
+  const handleSort = (col: string) => {
+    if (sortCol === col) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortCol(col);
+      setSortDir(col === 'registros' || col === 'version' ? 'desc' : 'asc');
+    }
+  };
+
+  const sortedTotems = useMemo(() => {
+    return [...totems].sort((a: any, b: any) => {
+      let cmp = 0;
+      switch (sortCol) {
+        case 'name': cmp = (a.name || '').localeCompare(b.name || ''); break;
+        case 'location': cmp = (a.location || '').localeCompare(b.location || ''); break;
+        case 'online': cmp = (a.online === b.online ? 0 : a.online ? -1 : 1); break;
+        case 'synced': {
+          const sa = activePhase ? a.version_data >= activePhase.version : true;
+          const sb = activePhase ? b.version_data >= activePhase.version : true;
+          cmp = sa === sb ? 0 : sa ? -1 : 1;
+          break;
+        }
+        case 'version': cmp = (a.version_data || 0) - (b.version_data || 0); break;
+        case 'heartbeat': cmp = new Date(a.last_heartbeat || 0).getTime() - new Date(b.last_heartbeat || 0).getTime(); break;
+        case 'sync': cmp = new Date(a.last_sync || 0).getTime() - new Date(b.last_sync || 0).getTime(); break;
+        case 'registros': cmp = (a.registrations_count || 0) - (b.registrations_count || 0); break;
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }, [totems, sortCol, sortDir, activePhase]);
+
+  const sortIcon = (col: string) =>
+    sortCol === col ? (sortDir === 'asc' ? ' ▲' : ' ▼') : '';
 
   if (totemsLoading) return <PageLoader />
 
@@ -118,13 +154,27 @@ export default function DashboardPage() {
           <table className="w-full text-sm">
             <thead>
               <tr>
-                {['Tótem', 'Ubicación', 'Estado', 'Sincronizado', 'Versión', 'Último heartbeat', 'Última sync', 'Registros'].map(h => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase tracking-wider border-b border-white/[0.06]">{h}</th>
+                {[
+                  { label: 'Tótem', col: 'name' },
+                  { label: 'Ubicación', col: 'location' },
+                  { label: 'Estado', col: 'online' },
+                  { label: 'Sincronizado', col: 'synced' },
+                  { label: 'Versión', col: 'version' },
+                  { label: 'Último heartbeat', col: 'heartbeat' },
+                  { label: 'Última sync', col: 'sync' },
+                  { label: 'Registros', col: 'registros' },
+                ].map(h => (
+                  <th key={h.col}
+                    onClick={() => handleSort(h.col)}
+                    className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase tracking-wider border-b border-white/[0.06] cursor-pointer hover:text-[#e8eaf0] select-none"
+                  >
+                    {h.label}{sortIcon(h.col)}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {totems.map((t: TotemStatus) => {
+              {sortedTotems.map((t: TotemStatus) => {
                 const synced = activePhase ? t.version_data >= activePhase.version : true
                 return (
                   <tr key={t.id} className="hover:bg-white/[0.02] transition-colors">
@@ -157,7 +207,7 @@ export default function DashboardPage() {
                 )
               })}
               {totems.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-12 text-center text-[#7a8899]">No hay tótems registrados</td></tr>
+                <tr><td colSpan={8} className="px-4 py-12 text-center text-[#7a8899]">No hay tótems registrados</td></tr>
               )}
             </tbody>
           </table>
