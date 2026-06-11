@@ -88,12 +88,12 @@ export default function DashboardPage() {
         title="Dashboard"
         subtitle="Resumen general del sistema"
         action={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             {isSuperAdmin && (
               <Select 
                 value={selectedCampaign || ''} 
                 onChange={(e) => setSelectedCampaign(e.target.value ? Number(e.target.value) : undefined)}
-                className="w-64"
+                className="w-full sm:w-64"
               >
                 <option value="">Todas las campañas</option>
                 {campaigns.map((c: Campaign) => (
@@ -101,7 +101,7 @@ export default function DashboardPage() {
                 ))}
               </Select>
             )}
-            <button onClick={() => refetch()} className="flex items-center gap-2 text-sm text-[#7a8899] hover:text-[#e8eaf0] transition-colors px-3 py-2 rounded-lg hover:bg-white/5">
+            <button onClick={() => refetch()} className="flex items-center gap-2 text-sm text-[#7a8899] hover:text-[#e8eaf0] transition-colors px-3 py-2 rounded-lg hover:bg-white/5 whitespace-nowrap">
               <RefreshCw className="w-4 h-4" /> Actualizar
             </button>
           </div>
@@ -109,7 +109,7 @@ export default function DashboardPage() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
         <StatCard label="Participantes" value={stats?.total_registrations ?? 0} icon={Users} color="text-blue-400" />
         <StatCard label="Ganadores" value={stats?.total_winners ?? 0} icon={Trophy} color="text-accent" />
         <StatCard label="Tótems en línea" value={`${onlineCount}/${totems.length}`} icon={Wifi} color="text-green-400" />
@@ -150,8 +150,8 @@ export default function DashboardPage() {
             </span>
           </div>
         </CardHeader>
-        <CardBody className="p-0">
-          <table className="w-full text-sm">
+        <CardBody className="p-0 overflow-x-auto">
+          <table className="w-full text-sm min-w-[700px]">
             <thead>
               <tr>
                 {[

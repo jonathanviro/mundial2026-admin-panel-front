@@ -65,6 +65,9 @@ export default function MatchesPage() {
     undefined,
   );
 
+  const [filterDate, setFilterDate] = useState("");
+  const [filterTeam, setFilterTeam] = useState("");
+
   // Knockout modal
   const [knockoutModal, setKnockoutModal] = useState(false);
   const [nextPhaseNumber, setNextPhaseNumber] = useState<number | null>(null);
@@ -641,10 +644,50 @@ export default function MatchesPage() {
             </Card>
           )}
 
+          {/* Filters */}
+          {matches.length > 0 && (
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4">
+            <div className="w-full sm:w-64">
+              <Select
+                value={filterDate}
+                onChange={(e) => { setFilterDate(e.target.value); setFilterTeam(""); }}
+              >
+                <option value="">Todas las fechas</option>
+                {matches.reduce((acc: string[], m: Match) => {
+                  if (m.date && !acc.includes(m.date)) acc.push(m.date);
+                  return acc;
+                }, []).sort().map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </Select>
+            </div>
+            <div className="w-full sm:w-64">
+              <Select
+                value={filterTeam}
+                onChange={(e) => { setFilterTeam(e.target.value); setFilterDate(""); }}
+              >
+                <option value="">Todos los equipos</option>
+                {matches.reduce((acc: string[], m: Match) => {
+                  if (m.team_local && !acc.includes(m.team_local)) acc.push(m.team_local);
+                  if (m.team_visitor && !acc.includes(m.team_visitor)) acc.push(m.team_visitor);
+                  return acc;
+                }, []).sort().map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </Select>
+            </div>
+          </div>
+          )}
+
           {/* Group by group_name */}
           {(() => {
+            const filtered = matches.filter((m: Match) => {
+              if (filterDate && m.date !== filterDate) return false;
+              if (filterTeam && m.team_local !== filterTeam && m.team_visitor !== filterTeam) return false;
+              return true;
+            });
             const groups: Record<string, Match[]> = {};
-            matches.forEach((m: Match) => {
+            filtered.forEach((m: Match) => {
               const key = m.group_name || "Eliminatoria";
               if (!groups[key]) groups[key] = [];
               groups[key].push(m);
@@ -656,8 +699,8 @@ export default function MatchesPage() {
                     {grp.length === 1 ? `GRUPO ${grp}` : grp}
                   </h3>
                 </CardHeader>
-                <CardBody className="p-0">
-                  <table className="w-full text-sm">
+                <CardBody className="p-0 overflow-x-auto">
+                  <table className="w-full text-sm min-w-[800px]">
                     <thead>
                       <tr>
                         <th className="text-left px-4 py-2 text-xs font-semibold text-[#7a8899] uppercase tracking-wider border-b border-white/[0.06]">
