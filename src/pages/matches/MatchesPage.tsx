@@ -168,6 +168,16 @@ export default function MatchesPage() {
     setEditTeamModal(true);
   };
 
+  const finishMut = useMutation({
+    mutationFn: (id: number) => matchesApi.finish(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["matches"] });
+      setAlert({ type: "success", msg: "Partido finalizado" });
+      setTimeout(() => setAlert(null), 5000);
+    },
+    onError: (e: any) => setAlert({ type: "danger", msg: e.response?.data?.message || "Error" }),
+  });
+
   const teamMut = useMutation({
     mutationFn: (data: any) => matchesApi.updateTeams(editingMatch!.id, data),
     onSuccess: () => {
@@ -745,7 +755,7 @@ export default function MatchesPage() {
                               {m.team_local || "?"}
                             </td>
                             <td className="px-4 py-3 border-b border-white/[0.04]">
-                              {canEdit && !m.finished ? (
+                              {canEdit ? (
                                 <div className="flex items-center gap-2">
                                   <ScoreInput
                                     value={s.l}
@@ -797,7 +807,7 @@ export default function MatchesPage() {
                             </td>
                             <td className="px-4 py-3 border-b border-white/[0.04]">
                               <div className="flex gap-2">
-                                {canEdit && !m.finished && (
+                                {canEdit && (
                                   <Button
                                     size="sm"
                                     variant="success"
@@ -810,6 +820,19 @@ export default function MatchesPage() {
                                     }
                                   >
                                     Guardar
+                                  </Button>
+                                )}
+                                {canEdit && !m.finished && (
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    loading={finishMut.isPending}
+                                    onClick={() => {
+                                      if (confirm(`¿Finalizar ${m.team_local} vs ${m.team_visitor} sin resultado?`))
+                                        finishMut.mutate(m.id);
+                                    }}
+                                  >
+                                    Finalizar
                                   </Button>
                                 )}
                                 {canEdit && (

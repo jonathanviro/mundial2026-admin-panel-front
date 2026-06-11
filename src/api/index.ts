@@ -167,6 +167,8 @@ export const matchesApi = {
     api
       .put(`/matches/${id}/result`, { goals_local, goals_visitor })
       .then((r) => r.data),
+  finish: (id: number) =>
+    api.put(`/matches/${id}/finish`).then((r) => r.data),
 };
 
 // ── Registrations ─────────────────────────────────────────────────
