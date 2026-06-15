@@ -21,7 +21,7 @@ import type { Registration, Phase, Campaign, PaginatedResponse, Prediction } fro
 
 const LIMIT = 50;
 
-function ExportButton({ params }: { params: any }) {
+function ExportButton({ params }: { params: { campaign_id?: number; phase_id?: number; source?: string } }) {
   const [loading, setLoading] = useState(false);
   const handleExport = async () => {
     setLoading(true);
@@ -152,7 +152,7 @@ export function RegistrationsPage() {
                 ))}
               </Select>
             )}
-            <ExportButton params={{ campaign_id: cid, phase_id: phaseFilter ? +phaseFilter : undefined }} />
+            <ExportButton params={{ campaign_id: cid, phase_id: phaseFilter ? +phaseFilter : undefined, source: sourceFilter || undefined }} />
           </div>
         }
       />
