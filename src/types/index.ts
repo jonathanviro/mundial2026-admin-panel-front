@@ -111,17 +111,31 @@ export interface Prediction {
 export interface Registration {
   id: number
   factura: string
-  participant_id: number
-  totem_id: number
+  participant_id?: number | null
+  totem_id?: number | null
+  employee_id?: string | null
   phase_id: number
+  source: string
   registered_at?: string
   synced_at?: string
   is_winner: boolean
   correct_predictions: number
+  total_points?: number
+  prediction_date?: string | null
   participant?: Participant
   totem?: Totem
   phase?: Phase
+  employee?: Employee
   predictions?: Prediction[]
+  _count?: { predictions: number }
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  total: number
+  page: number
+  pages: number
+  limit: number
 }
 
 export interface Employee {

@@ -177,16 +177,26 @@ export const registrationsApi = {
     campaign_id?: number;
     phase_id?: number;
     totem_id?: number;
+    source?: string;
+    page?: number;
+    limit?: number;
+    search?: string;
   }) => {
     const queryParams: Record<string, any> = {};
     if (params.campaign_id !== undefined && params.campaign_id !== null)
       queryParams.campaign_id = params.campaign_id;
     if (params.phase_id) queryParams.phase_id = params.phase_id;
     if (params.totem_id) queryParams.totem_id = params.totem_id;
+    if (params.source) queryParams.source = params.source;
+    if (params.page) queryParams.page = params.page;
+    if (params.limit) queryParams.limit = params.limit;
+    if (params.search) queryParams.search = params.search;
     return api
       .get("/registrations", { params: queryParams })
       .then((r) => r.data);
   },
+  getPredictions: (id: number) =>
+    api.get(`/registrations/${id}/predictions`).then((r) => r.data),
   winners: (params: { campaign_id?: number; phase_id?: number }) => {
     const queryParams: Record<string, any> = {};
     if (params.campaign_id !== undefined && params.campaign_id !== null)
