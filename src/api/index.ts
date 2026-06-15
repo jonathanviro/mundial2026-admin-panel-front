@@ -221,12 +221,14 @@ export const registrationsApi = {
     campaign_id?: number;
     phase_id?: number;
     totem_id?: number;
+    source?: string;
   }) => {
     const token = localStorage.getItem("auth_token");
     const qs = new URLSearchParams();
     if (params.campaign_id) qs.set("campaign_id", String(params.campaign_id));
     if (params.phase_id) qs.set("phase_id", String(params.phase_id));
     if (params.totem_id) qs.set("totem_id", String(params.totem_id));
+    if (params.source) qs.set("source", params.source);
     const url = `${BASE_URL}/registrations/export?${qs}`;
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
