@@ -181,6 +181,8 @@ export const registrationsApi = {
     page?: number;
     limit?: number;
     search?: string;
+    sortBy?: string;
+    sortOrder?: string;
   }) => {
     const queryParams: Record<string, any> = {};
     if (params.campaign_id !== undefined && params.campaign_id !== null)
@@ -191,6 +193,8 @@ export const registrationsApi = {
     if (params.page) queryParams.page = params.page;
     if (params.limit) queryParams.limit = params.limit;
     if (params.search) queryParams.search = params.search;
+    if (params.sortBy) queryParams.sortBy = params.sortBy;
+    if (params.sortOrder) queryParams.sortOrder = params.sortOrder;
     return api
       .get("/registrations", { params: queryParams })
       .then((r) => r.data);

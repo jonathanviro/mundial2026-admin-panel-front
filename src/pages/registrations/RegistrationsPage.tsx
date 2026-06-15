@@ -48,6 +48,8 @@ export function RegistrationsPage() {
   const [sourceFilter, setSourceFilter] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState("registered_at");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [previewReg, setPreviewReg] = useState<Registration | null>(null);
   const [previewPreds, setPreviewPreds] = useState<Prediction[]>([]);
   const [loadingPreds, setLoadingPreds] = useState(false);
@@ -66,7 +68,7 @@ export function RegistrationsPage() {
   });
 
   const { data: resp, isLoading } = useQuery({
-    queryKey: ["registrations", cid, phaseFilter, sourceFilter, page, search],
+    queryKey: ["registrations", cid, phaseFilter, sourceFilter, page, search, sortBy, sortOrder],
     queryFn: () =>
       registrationsApi.list({
         campaign_id: cid,
@@ -75,6 +77,8 @@ export function RegistrationsPage() {
         page,
         limit: LIMIT,
         search: search || undefined,
+        sortBy,
+        sortOrder,
       }),
     placeholderData: (prev: any) => prev,
   });
@@ -86,6 +90,33 @@ export function RegistrationsPage() {
 
   const isWeb = sourceFilter === "WEB";
   const isTotem = sourceFilter === "TOTEM";
+
+  const handleSort = (col: string) => {
+    if (sortBy === col) {
+      setSortOrder(o => o === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(col);
+      setSortOrder(col === 'code' || col === 'nombres' ? 'asc' : 'desc');
+    }
+    setPage(1);
+  };
+
+  const SortIcon = ({ col }: { col: string }) => {
+    if (sortBy !== col) return <span className="text-[#4a5568] ml-1">↕</span>;
+    return <span className="text-accent ml-1">{sortOrder === 'asc' ? '▲' : '▼'}</span>;
+  };
+
+  const SortTh = ({ col, children, className }: { col: string; children: React.ReactNode; className?: string }) => (
+    <th
+      onClick={() => handleSort(col)}
+      className={`cursor-pointer hover:text-[#e8eaf0] select-none px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase border-b border-white/[0.06] ${className || ''}`}
+    >
+      <div className="flex items-center gap-0.5">
+        {children}
+        <SortIcon col={col} />
+      </div>
+    </th>
+  );
 
   const openPredictions = async (reg: Registration) => {
     setPreviewReg(reg);
@@ -162,34 +193,34 @@ export function RegistrationsPage() {
               <tr className="border-b border-white/[0.06]">
                 {isWeb ? (
                   <>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Código</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Nombre</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Fecha Pred.</th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Aciertos</th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Puntos</th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Pred.</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Acción</th>
+                    <SortTh col="code">Código</SortTh>
+                    <SortTh col="nombres">Nombre</SortTh>
+                    <SortTh col="prediction_date">Fecha Pred.</SortTh>
+                    <SortTh col="correct_predictions" className="text-center">Aciertos</SortTh>
+                    <SortTh col="total_points" className="text-center">Puntos</SortTh>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase border-b border-white/[0.06]">Pred.</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase border-b border-white/[0.06]">Acción</th>
                   </>
                 ) : isTotem ? (
                   <>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Factura</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Participante</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Cédula</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Tótem</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Fase</th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Aciertos</th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Ganador</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Fecha</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Acción</th>
+                    <SortTh col="factura">Factura</SortTh>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase border-b border-white/[0.06]">Participante</th>
+                    <SortTh col="cedula">Cédula</SortTh>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase border-b border-white/[0.06]">Tótem</th>
+                    <SortTh col="phase">Fase</SortTh>
+                    <SortTh col="correct_predictions" className="text-center">Aciertos</SortTh>
+                    <th className="text-center px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase border-b border-white/[0.06]">Ganador</th>
+                    <SortTh col="registered_at">Fecha</SortTh>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase border-b border-white/[0.06]">Acción</th>
                   </>
                 ) : (
                   <>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Origen</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Código / Factura</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Nombre</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Fase</th>
-                    <th className="text-center px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Aciertos</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase">Acción</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase border-b border-white/[0.06]">Origen</th>
+                    <SortTh col="code">Código / Factura</SortTh>
+                    <SortTh col="nombres">Nombre</SortTh>
+                    <SortTh col="phase">Fase</SortTh>
+                    <SortTh col="correct_predictions" className="text-center">Aciertos</SortTh>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#7a8899] uppercase border-b border-white/[0.06]">Acción</th>
                   </>
                 )}
               </tr>
