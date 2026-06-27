@@ -10,6 +10,7 @@ interface Matchup {
   team_visitor: string;
   flag_local: string;
   flag_visitor: string;
+  date: string;
 }
 
 interface KnockoutSetupModalProps {
@@ -44,6 +45,7 @@ export function KnockoutSetupModal({
   onPhaseCreated,
 }: KnockoutSetupModalProps) {
   const [matchups, setMatchups] = useState<Matchup[]>([]);
+  const [dailyPredictions, setDailyPredictions] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -60,6 +62,7 @@ export function KnockoutSetupModal({
           team_visitor: "",
           flag_local: "",
           flag_visitor: "",
+          date: "",
         });
       }
       setMatchups(initial);
@@ -110,7 +113,7 @@ export function KnockoutSetupModal({
     mutationFn: (data: any) => phasesApi.generateNext(data),
     onSuccess: (data) => {
       setSuccess(
-        `¡Fase ${data.phase.name} creada con ${data.matches_created} partidos!`,
+        `¡Fase ${data.phase.name} creada con ${data.matches_created} de ${data.total_expected} partidos!`,
       );
       setTimeout(() => {
         onPhaseCreated(data.phase);
@@ -122,17 +125,16 @@ export function KnockoutSetupModal({
   });
 
   const handleGenerate = () => {
-    const incomplete = matchups.filter((m) => !m.team_local || !m.team_visitor);
-    if (incomplete.length > 0) {
-      setError(
-        `Faltan equipos en ${incomplete.length} partido(s). Completa todos los enfrentamientos.`,
-      );
+    const completed = matchups.filter((m) => m.team_local && m.team_visitor);
+
+    if (completed.length === 0) {
+      setError("Completa al menos un enfrentamiento antes de generar.");
       return;
     }
 
     // Validate no same team as local and visitor in same match
-    const sameTeamMatches = matchups.filter(
-      (m) => m.team_local === m.team_visitor && m.team_local !== "",
+    const sameTeamMatches = completed.filter(
+      (m) => m.team_local === m.team_visitor,
     );
     if (sameTeamMatches.length > 0) {
       setError(
@@ -141,7 +143,8 @@ export function KnockoutSetupModal({
       return;
     }
 
-    const allTeams = matchups.flatMap((m) => [m.team_local, m.team_visitor]);
+    // Validate no duplicate teams within completed matchups only
+    const allTeams = completed.flatMap((m) => [m.team_local, m.team_visitor]);
     const duplicates = allTeams.filter(
       (item, index) => allTeams.indexOf(item) !== index && item !== "",
     );
@@ -154,31 +157,17 @@ export function KnockoutSetupModal({
     const payload: Record<string, any> = {
       current_phase_id: phaseId,
       qualified_teams: ALL_TEAMS,
-      matchups: matchups.map((m) => ({
+      daily_predictions: dailyPredictions,
+      matchups: completed.map((m) => ({
         team_local: m.team_local,
         team_visitor: m.team_visitor,
+        date: m.date || undefined,
         flag_local: m.flag_local,
         flag_visitor: m.flag_visitor,
       })),
     };
 
-    if (nextPhaseNumber === 2) {
-      payload.predictions_required = 16;
-      payload.min_correct_to_win = 3;
-    } else if (nextPhaseNumber === 3) {
-      payload.predictions_required = 8;
-      payload.min_correct_to_win = 2;
-    } else if (nextPhaseNumber === 4) {
-      payload.predictions_required = 4;
-      payload.min_correct_to_win = 2;
-    } else if (nextPhaseNumber === 5) {
-      payload.predictions_required = 2;
-      payload.min_correct_to_win = 2;
-    } else if (nextPhaseNumber === 6) {
-      payload.predictions_required = 1;
-      payload.min_correct_to_win = 1;
-    }
-
+    // Let backend calculate dynamically based on sent matchups
     generateMut.mutate(payload);
   };
 
@@ -209,6 +198,16 @@ export function KnockoutSetupModal({
             )}
           </span>
         </div>
+
+        <label className="flex items-center gap-2 text-sm text-[#e8eaf0] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={dailyPredictions}
+            onChange={(e) => setDailyPredictions(e.target.checked)}
+            className="w-4 h-4 accent-accent"
+          />
+          Predicciones diarias (la web muestra un día a la vez)
+        </label>
 
         <div className="max-h-96 overflow-y-auto space-y-2">
           {matchups.map((m, idx) => {
@@ -267,14 +266,28 @@ export function KnockoutSetupModal({
                     </option>
                   ))}
                 </Select>
+
+                <input
+                  type="date"
+                  value={m.date}
+                  onChange={(e) => {
+                    const updated = [...matchups];
+                    updated[idx].date = e.target.value;
+                    setMatchups(updated);
+                  }}
+                  className="w-36 bg-surface-card2 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-[#e8eaf0] focus:border-accent/60 outline-none"
+                  title="Fecha del partido"
+                />
               </div>
             );
           })}
         </div>
 
-        {availableTeams.length > 0 && availableTeams.length <= 16 && (
+        {availableTeams.length > 0 && (
           <div>
-            <p className="text-xs text-[#7a8899] mb-2">Equipos disponibles:</p>
+            <p className="text-xs text-[#7a8899] mb-2">
+              Equipos disponibles ({availableTeams.length} restantes):
+            </p>
             <div className="flex flex-wrap gap-1">
               {availableTeams.map((t, i) => (
                 <span
@@ -296,9 +309,9 @@ export function KnockoutSetupModal({
             variant="success"
             loading={generateMut.isPending}
             onClick={handleGenerate}
-            disabled={selectedCount !== matchesCount}
+            disabled={selectedCount === 0}
           >
-            ✅ Crear Fase {phaseName}
+            ✅ Crear Fase {phaseName} ({selectedCount}/{matchesCount} partidos)
           </Button>
         </div>
       </div>

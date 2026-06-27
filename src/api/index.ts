@@ -153,6 +153,10 @@ export const phasesApi = {
     api.get(`/phases/${phaseId}/standings`).then((r) => r.data),
   generateNext: (data: any) =>
     api.post("/phases/generate-next", data).then((r) => r.data),
+  addMatches: (phaseId: number, data: { matches: any[] }) =>
+    api.post(`/phases/${phaseId}/add-matches`, data).then((r) => r.data),
+  update: (id: number, data: any) =>
+    api.patch(`/phases/${id}`, data).then((r) => r.data),
 };
 
 // ── Matches ───────────────────────────────────────────────────────
@@ -169,6 +173,8 @@ export const matchesApi = {
       .then((r) => r.data),
   finish: (id: number) =>
     api.put(`/matches/${id}/finish`).then((r) => r.data),
+  reset: (id: number) =>
+    api.put(`/matches/${id}/reset`).then((r) => r.data),
 };
 
 // ── Registrations ─────────────────────────────────────────────────
@@ -181,6 +187,8 @@ export const registrationsApi = {
     page?: number;
     limit?: number;
     search?: string;
+    sortBy?: string;
+    sortOrder?: string;
   }) => {
     const queryParams: Record<string, any> = {};
     if (params.campaign_id !== undefined && params.campaign_id !== null)
@@ -191,6 +199,8 @@ export const registrationsApi = {
     if (params.page) queryParams.page = params.page;
     if (params.limit) queryParams.limit = params.limit;
     if (params.search) queryParams.search = params.search;
+    if (params.sortBy) queryParams.sortBy = params.sortBy;
+    if (params.sortOrder) queryParams.sortOrder = params.sortOrder;
     return api
       .get("/registrations", { params: queryParams })
       .then((r) => r.data);
@@ -217,12 +227,14 @@ export const registrationsApi = {
     campaign_id?: number;
     phase_id?: number;
     totem_id?: number;
+    source?: string;
   }) => {
     const token = localStorage.getItem("auth_token");
     const qs = new URLSearchParams();
     if (params.campaign_id) qs.set("campaign_id", String(params.campaign_id));
     if (params.phase_id) qs.set("phase_id", String(params.phase_id));
     if (params.totem_id) qs.set("totem_id", String(params.totem_id));
+    if (params.source) qs.set("source", params.source);
     const url = `${BASE_URL}/registrations/export?${qs}`;
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
