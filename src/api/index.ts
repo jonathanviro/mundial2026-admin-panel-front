@@ -153,6 +153,10 @@ export const phasesApi = {
     api.get(`/phases/${phaseId}/standings`).then((r) => r.data),
   generateNext: (data: any) =>
     api.post("/phases/generate-next", data).then((r) => r.data),
+  addMatches: (phaseId: number, data: { matches: any[] }) =>
+    api.post(`/phases/${phaseId}/add-matches`, data).then((r) => r.data),
+  update: (id: number, data: any) =>
+    api.patch(`/phases/${id}`, data).then((r) => r.data),
 };
 
 // ── Matches ───────────────────────────────────────────────────────
@@ -169,6 +173,8 @@ export const matchesApi = {
       .then((r) => r.data),
   finish: (id: number) =>
     api.put(`/matches/${id}/finish`).then((r) => r.data),
+  reset: (id: number) =>
+    api.put(`/matches/${id}/reset`).then((r) => r.data),
 };
 
 // ── Registrations ─────────────────────────────────────────────────

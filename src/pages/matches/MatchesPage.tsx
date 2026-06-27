@@ -16,7 +16,7 @@ import {
   Input,
 } from "@/components/ui";
 import { PageHeader } from "@/components/layout/Layout";
-import { Swords, CheckCircle2, Upload, Trophy, GitBranch } from "lucide-react";
+import { Swords, CheckCircle2, Upload, Trophy, GitBranch, Plus } from "lucide-react";
 import type { Match, Phase, Campaign } from "@/types";
 import {
   GROUP_MATCHES,
@@ -168,11 +168,69 @@ export default function MatchesPage() {
     setEditTeamModal(true);
   };
 
+  // Edit phase settings
+  const [editPhaseModal, setEditPhaseModal] = useState(false);
+  const [editPhaseForm, setEditPhaseForm] = useState({
+    name: "",
+    daily_predictions: false,
+  });
+  const [editPhaseError, setEditPhaseError] = useState("");
+
+  const editPhaseMut = useMutation({
+    mutationFn: (data: any) => phasesApi.update(selectedPhase!, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["phases"] });
+      qc.invalidateQueries({ queryKey: ["matches"] });
+      setEditPhaseModal(false);
+      setAlert({ type: "success", msg: "Fase actualizada" });
+      setTimeout(() => setAlert(null), 5000);
+    },
+    onError: (e: any) =>
+      setEditPhaseError(e.response?.data?.message || "Error al actualizar fase"),
+  });
+
+  // Add match to knockout phase
+  const [addMatchModal, setAddMatchModal] = useState(false);
+  const [addMatchForm, setAddMatchForm] = useState({
+    team_local: "",
+    team_visitor: "",
+    date: "",
+  });
+  const [addMatchError, setAddMatchError] = useState("");
+
+  const addMatchMut = useMutation({
+    mutationFn: (data: { matches: any[] }) =>
+      phasesApi.addMatches(selectedPhase!, data),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["matches"] });
+      qc.invalidateQueries({ queryKey: ["phases"] });
+      setAddMatchModal(false);
+      setAddMatchForm({ team_local: "", team_visitor: "", date: "" });
+      setAlert({
+        type: "success",
+        msg: `${data.matches_created} partido(s) agregado(s). Total: ${data.total_matches}/${data.total_expected}.`,
+      });
+      setTimeout(() => setAlert(null), 5000);
+    },
+    onError: (e: any) =>
+      setAddMatchError(e.response?.data?.message || "Error al agregar partido"),
+  });
+
   const finishMut = useMutation({
     mutationFn: (id: number) => matchesApi.finish(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["matches"] });
       setAlert({ type: "success", msg: "Partido finalizado" });
+      setTimeout(() => setAlert(null), 5000);
+    },
+    onError: (e: any) => setAlert({ type: "danger", msg: e.response?.data?.message || "Error" }),
+  });
+
+  const resetMut = useMutation({
+    mutationFn: (id: number) => matchesApi.reset(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["matches"] });
+      setAlert({ type: "success", msg: "Partido revertido a pendiente" });
       setTimeout(() => setAlert(null), 5000);
     },
     onError: (e: any) => setAlert({ type: "danger", msg: e.response?.data?.message || "Error" }),
@@ -477,6 +535,32 @@ export default function MatchesPage() {
                   >
                     📊 Ver Standings
                   </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      const p = phases.find((ph: Phase) => ph.id === selectedPhase);
+                      setEditPhaseForm({
+                        name: p?.name || "",
+                        daily_predictions: p?.daily_predictions || false,
+                      });
+                      setEditPhaseError("");
+                      setEditPhaseModal(true);
+                    }}
+                  >
+                    Editar Fase
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setAddMatchForm({ team_local: "", team_visitor: "", date: "" });
+                      setAddMatchError("");
+                      setAddMatchModal(true);
+                    }}
+                  >
+                    <Plus className="w-4 h-4" /> Agregar Partido
+                  </Button>
                   {(() => {
                     const currentPhaseNum = phases.find(
                       (p) => p.id === selectedPhase,
@@ -611,20 +695,6 @@ export default function MatchesPage() {
           </div>
         </CardBody>
       </Card>
-
-      {/* Knockout Setup Modal */}
-      <KnockoutSetupModal
-        open={knockoutModal}
-        onClose={() => setKnockoutModal(false)}
-        phaseId={selectedPhase!}
-        nextPhaseNumber={nextPhaseNumber || 2}
-        onPhaseCreated={(newPhase) => {
-          qc.invalidateQueries({ queryKey: ["phases"] });
-          if (confirm(`¿Desea cambiar a la nueva fase "${newPhase.name}"?`)) {
-            setSelectedPhase(newPhase.id);
-          }
-        }}
-      />
 
       {!selectedPhase && (
         <Card>
@@ -845,9 +915,17 @@ export default function MatchesPage() {
                                   </Button>
                                 )}
                                 {m.finished && canEdit && (
-                                  <span className="text-xs text-[#7a8899]">
-                                    Completado
-                                  </span>
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    loading={resetMut.isPending}
+                                    onClick={() => {
+                                      if (confirm(`¿Revertir ${m.team_local} vs ${m.team_visitor}? Se borrará el resultado y las predicciones.`))
+                                        resetMut.mutate(m.id);
+                                    }}
+                                  >
+                                    Revertir
+                                  </Button>
                                 )}
                               </div>
                             </td>
@@ -981,6 +1059,142 @@ export default function MatchesPage() {
                 onClick={() => teamMut.mutate(teamForm)}
               >
                 Guardar Cambios
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Edit Phase Modal */}
+      {editPhaseModal && (
+        <Modal
+          open={editPhaseModal}
+          onClose={() => setEditPhaseModal(false)}
+          title="Editar Fase"
+          width="max-w-md"
+        >
+          <div className="space-y-4">
+            {editPhaseError && <Alert variant="danger">{editPhaseError}</Alert>}
+            <div>
+              <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
+                Nombre de la fase
+              </label>
+              <Input
+                value={editPhaseForm.name}
+                onChange={(e) =>
+                  setEditPhaseForm({ ...editPhaseForm, name: e.target.value })
+                }
+              />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-[#e8eaf0] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={editPhaseForm.daily_predictions}
+                onChange={(e) =>
+                  setEditPhaseForm({ ...editPhaseForm, daily_predictions: e.target.checked })
+                }
+                className="w-4 h-4 accent-accent"
+              />
+              Predicciones diarias (la web muestra un día a la vez)
+            </label>
+            <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+              <Button variant="secondary" onClick={() => setEditPhaseModal(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="success"
+                loading={editPhaseMut.isPending}
+                onClick={() => editPhaseMut.mutate(editPhaseForm)}
+              >
+                Guardar
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Add Match Modal */}
+      {addMatchModal && (
+        <Modal
+          open={addMatchModal}
+          onClose={() => {
+            setAddMatchModal(false);
+            setAddMatchForm({ team_local: "", team_visitor: "", date: "" });
+          }}
+          title="Agregar Partido a Fase Eliminatoria"
+          width="max-w-md"
+        >
+          <div className="space-y-4">
+            {addMatchError && <Alert variant="danger">{addMatchError}</Alert>}
+            <p className="text-sm text-[#7a8899]">
+              Fase: {phases.find((p: Phase) => p.id === selectedPhase)?.name}
+            </p>
+            <div>
+              <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
+                Fecha del partido
+              </label>
+              <Input
+                type="date"
+                value={addMatchForm.date}
+                onChange={(e) =>
+                  setAddMatchForm({ ...addMatchForm, date: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
+                  Equipo Local
+                </label>
+                <Input
+                  value={addMatchForm.team_local}
+                  onChange={(e) =>
+                    setAddMatchForm({
+                      ...addMatchForm,
+                      team_local: e.target.value,
+                    })
+                  }
+                  placeholder="Nombre del equipo"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
+                  Equipo Visitante
+                </label>
+                <Input
+                  value={addMatchForm.team_visitor}
+                  onChange={(e) =>
+                    setAddMatchForm({
+                      ...addMatchForm,
+                      team_visitor: e.target.value,
+                    })
+                  }
+                  placeholder="Nombre del equipo"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setAddMatchModal(false);
+                  setAddMatchForm({ team_local: "", team_visitor: "", date: "" });
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="success"
+                loading={addMatchMut.isPending}
+                onClick={() => {
+                  if (!addMatchForm.team_local || !addMatchForm.team_visitor) {
+                    setAddMatchError("Completa ambos equipos");
+                    return;
+                  }
+                  addMatchMut.mutate({ matches: [addMatchForm] });
+                }}
+              >
+                Agregar Partido
               </Button>
             </div>
           </div>
