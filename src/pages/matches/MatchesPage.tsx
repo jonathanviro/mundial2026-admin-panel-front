@@ -14,6 +14,7 @@ import {
   EmptyState,
   Modal,
   Input,
+  SearchableSelect,
 } from "@/components/ui";
 import { PageHeader } from "@/components/layout/Layout";
 import { Swords, CheckCircle2, Upload, Trophy, GitBranch, Plus } from "lucide-react";
@@ -984,64 +985,38 @@ export default function MatchesPage() {
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
-                  Equipo Local
-                </label>
-                <Input
-                  value={teamForm.team_local}
-                  onChange={(e) =>
-                    setTeamForm({
-                      ...teamForm,
-                      team_local: e.target.value,
-                      flag_local: getFlag(e.target.value),
-                    })
-                  }
-                  placeholder="Nombre del equipo"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
-                  Bandera
-                </label>
-                <Input
-                  value={teamForm.flag_local}
-                  onChange={(e) =>
-                    setTeamForm({ ...teamForm, flag_local: e.target.value })
-                  }
-                  placeholder="🇲🇽"
-                  className="w-20"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
-                  Equipo Visitante
-                </label>
-                <Input
-                  value={teamForm.team_visitor}
-                  onChange={(e) =>
-                    setTeamForm({
-                      ...teamForm,
-                      team_visitor: e.target.value,
-                      flag_visitor: getFlag(e.target.value),
-                    })
-                  }
-                  placeholder="Nombre del equipo"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
-                  Bandera
-                </label>
-                <Input
-                  value={teamForm.flag_visitor}
-                  onChange={(e) =>
-                    setTeamForm({ ...teamForm, flag_visitor: e.target.value })
-                  }
-                  placeholder="🇧🇷"
-                  className="w-20"
-                />
-              </div>
+              <SearchableSelect
+                label="Equipo Local"
+                options={ALL_TEAMS}
+                value={teamForm.team_local}
+                onChange={(v) =>
+                  setTeamForm({
+                    ...teamForm,
+                    team_local: v,
+                    flag_local: getFlag(v),
+                  })
+                }
+                filterOut={
+                  teamForm.team_visitor ? [teamForm.team_visitor] : []
+                }
+                placeholder="Buscar equipo local..."
+              />
+              <SearchableSelect
+                label="Equipo Visitante"
+                options={ALL_TEAMS}
+                value={teamForm.team_visitor}
+                onChange={(v) =>
+                  setTeamForm({
+                    ...teamForm,
+                    team_visitor: v,
+                    flag_visitor: getFlag(v),
+                  })
+                }
+                filterOut={
+                  teamForm.team_local ? [teamForm.team_local] : []
+                }
+                placeholder="Buscar equipo visitante..."
+              />
             </div>
             <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
               <Button
@@ -1142,36 +1117,32 @@ export default function MatchesPage() {
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
-                  Equipo Local
-                </label>
-                <Input
-                  value={addMatchForm.team_local}
-                  onChange={(e) =>
-                    setAddMatchForm({
-                      ...addMatchForm,
-                      team_local: e.target.value,
-                    })
-                  }
-                  placeholder="Nombre del equipo"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-[#7a8899] uppercase mb-1">
-                  Equipo Visitante
-                </label>
-                <Input
-                  value={addMatchForm.team_visitor}
-                  onChange={(e) =>
-                    setAddMatchForm({
-                      ...addMatchForm,
-                      team_visitor: e.target.value,
-                    })
-                  }
-                  placeholder="Nombre del equipo"
-                />
-              </div>
+              <SearchableSelect
+                label="Equipo Local"
+                options={ALL_TEAMS}
+                value={addMatchForm.team_local}
+                onChange={(v) =>
+                  setAddMatchForm({ ...addMatchForm, team_local: v })
+                }
+                filterOut={
+                  addMatchForm.team_visitor
+                    ? [addMatchForm.team_visitor]
+                    : []
+                }
+                placeholder="Buscar equipo local..."
+              />
+              <SearchableSelect
+                label="Equipo Visitante"
+                options={ALL_TEAMS}
+                value={addMatchForm.team_visitor}
+                onChange={(v) =>
+                  setAddMatchForm({ ...addMatchForm, team_visitor: v })
+                }
+                filterOut={
+                  addMatchForm.team_local ? [addMatchForm.team_local] : []
+                }
+                placeholder="Buscar equipo visitante..."
+              />
             </div>
             <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
               <Button
