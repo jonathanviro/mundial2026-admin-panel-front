@@ -10,8 +10,9 @@ import {
   Table,
   Th,
   Td,
-  Input,
+  SearchableSelect,
 } from "@/components/ui";
+import { ALL_TEAMS } from "@/lib/matches-data";
 import type { Phase } from "@/types";
 
 interface QualifiedTeam {
@@ -349,28 +350,39 @@ export function BracketManager({
               configuras, el backend generará: 1v2, 3v4, etc.
             </p>
             {matchups.map((m, idx) => (
-              <div key={idx} className="flex gap-2 mb-2 items-center">
-                <Input
-                  placeholder="Equipo Local"
-                  value={m.team_local}
-                  onChange={(e) =>
-                    updateMatchup(idx, "team_local", e.target.value)
-                  }
-                  className="flex-1"
-                />
-                <span className="text-[#7a8899]">vs</span>
-                <Input
-                  placeholder="Equipo Visitante"
-                  value={m.team_visitor}
-                  onChange={(e) =>
-                    updateMatchup(idx, "team_visitor", e.target.value)
-                  }
-                  className="flex-1"
-                />
+              <div key={idx} className="flex gap-2 mb-2 items-start">
+                <div className="flex-1">
+                  <SearchableSelect
+                    options={ALL_TEAMS}
+                    value={m.team_local}
+                    onChange={(v) =>
+                      updateMatchup(idx, "team_local", v)
+                    }
+                    filterOut={
+                      m.team_visitor ? [m.team_visitor] : []
+                    }
+                    placeholder="Local"
+                  />
+                </div>
+                <span className="text-[#7a8899] mt-3">vs</span>
+                <div className="flex-1">
+                  <SearchableSelect
+                    options={ALL_TEAMS}
+                    value={m.team_visitor}
+                    onChange={(v) =>
+                      updateMatchup(idx, "team_visitor", v)
+                    }
+                    filterOut={
+                      m.team_local ? [m.team_local] : []
+                    }
+                    placeholder="Visitante"
+                  />
+                </div>
                 <Button
                   size="sm"
                   variant="danger"
                   onClick={() => removeMatchup(idx)}
+                  className="mt-2"
                 >
                   ✕
                 </Button>

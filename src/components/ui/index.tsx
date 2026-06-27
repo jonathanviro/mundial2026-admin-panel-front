@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils'
-import { Loader2 } from 'lucide-react'
-import type { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes } from 'react'
+import { Loader2, ChevronDown } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import type { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes, KeyboardEvent } from 'react'
 
 // ── Button ────────────────────────────────────────────────────────────────
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -77,6 +78,154 @@ export function Select({ label, error, className, children, ...props }: SelectPr
       {error && <p className="text-xs text-red-400">{error}</p>}
     </div>
   )
+}
+
+// ── SearchableSelect ──────────────────────────────────────────────────────
+interface SearchableSelectProps {
+  options: Array<{ team: string; flag: string }>;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  label?: string;
+  error?: string;
+  filterOut?: string[];
+  className?: string;
+}
+
+export function SearchableSelect({
+  options,
+  value,
+  onChange,
+  placeholder = "Buscar equipo...",
+  label,
+  error,
+  filterOut = [],
+  className,
+}: SearchableSelectProps) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [highlightedIdx, setHighlightedIdx] = useState(-1);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const selected = options.find((o) => o.team === value);
+
+  const filtered = options.filter(
+    (o) =>
+      !filterOut.includes(o.team) &&
+      o.team.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  useEffect(() => {
+    if (!open) {
+      setSearch("");
+    }
+  }, [open]);
+
+  useEffect(() => {
+    setHighlightedIdx(-1);
+  }, [search]);
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const selectOption = (opt: (typeof options)[0]) => {
+    onChange(opt.team);
+    setOpen(false);
+    setSearch("");
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (!open) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightedIdx((i) => Math.min(i + 1, filtered.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightedIdx((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter" && highlightedIdx >= 0) {
+      e.preventDefault();
+      selectOption(filtered[highlightedIdx]);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setOpen(false);
+    }
+  };
+
+  return (
+    <div className="relative flex flex-col gap-1" ref={containerRef}>
+      {label && (
+        <label className="text-xs font-medium text-[#7a8899] uppercase tracking-wide">
+          {label}
+        </label>
+      )}
+      <div className="relative">
+        <input
+          value={selected && !open ? `${selected.flag} ${selected.team}` : search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            if (!open) setOpen(true);
+          }}
+          onFocus={() => {
+            if (!open) {
+              setOpen(true);
+              setSearch("");
+            }
+          }}
+          onKeyDown={handleKeyDown}
+          placeholder={!open && selected ? "" : placeholder}
+          className={cn(
+            "w-full px-3 py-2.5 rounded-lg bg-surface-card2 border text-sm text-[#e8eaf0] placeholder-[#4a5568] outline-none transition-colors cursor-pointer",
+            error
+              ? "border-red-500"
+              : "border-white/10 focus:border-accent/60",
+            className,
+          )}
+        />
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7a8899] pointer-events-none" />
+      </div>
+      {open && (
+        <div className="absolute z-50 top-full mt-1 left-0 right-0 max-h-60 overflow-y-auto rounded-lg bg-surface-card border border-white/10 shadow-xl">
+          {filtered.length === 0 ? (
+            <div className="px-3 py-2 text-sm text-[#7a8899]">
+              Sin resultados
+            </div>
+          ) : (
+            filtered.map((opt, i) => (
+              <div
+                key={opt.team}
+                className={cn(
+                  "px-3 py-2 text-sm cursor-pointer transition-colors flex items-center gap-2",
+                  i === highlightedIdx
+                    ? "bg-white/10"
+                    : "hover:bg-white/5",
+                  opt.team === value
+                    ? "text-accent"
+                    : "text-[#e8eaf0]",
+                )}
+                onMouseEnter={() => setHighlightedIdx(i)}
+                onClick={() => selectOption(opt)}
+              >
+                <span>{opt.flag}</span>
+                <span>{opt.team}</span>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+      {error && <p className="text-xs text-red-400">{error}</p>}
+    </div>
+  );
 }
 
 // ── Card ──────────────────────────────────────────────────────────────────
