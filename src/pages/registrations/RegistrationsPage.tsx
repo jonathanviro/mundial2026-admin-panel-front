@@ -40,6 +40,25 @@ function ExportButton({ params }: { params: { campaign_id?: number; phase_id?: n
   );
 }
 
+function ExportByPhaseButton({ params }: { params: { campaign_id?: number; phase_id?: number } }) {
+  const [loading, setLoading] = useState(false);
+  const handleExport = async () => {
+    setLoading(true);
+    try {
+      await registrationsApi.exportEmployeesByPhase(params);
+    } catch {
+      alert("Error al exportar el reporte");
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <Button variant="secondary" size="sm" onClick={handleExport} loading={loading}>
+      <Download className="w-4 h-4" /> Reporte por fase
+    </Button>
+  );
+}
+
 export function RegistrationsPage() {
   const { user } = useAuthStore();
   const isSuperAdmin = user?.role === "superadmin";
@@ -153,6 +172,7 @@ export function RegistrationsPage() {
               </Select>
             )}
             <ExportButton params={{ campaign_id: cid, phase_id: phaseFilter ? +phaseFilter : undefined, source: sourceFilter || undefined }} />
+            <ExportByPhaseButton params={{ campaign_id: cid, phase_id: phaseFilter ? +phaseFilter : undefined }} />
           </div>
         }
       />

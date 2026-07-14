@@ -30,7 +30,7 @@ const campaignAdminNav = [
 ]
 
 function SidebarContent({ collapsed, onToggleCollapse, user, handleLogout }: { collapsed: boolean; onToggleCollapse: () => void; user: any; handleLogout: () => void }) {
-  const navItems = user?.role === 'superadmin' ? superadminNav : campaignAdminNav
+  const navItems = superadminNav
   return (
     <>
       {/* Logo */}
@@ -152,7 +152,7 @@ export function Layout({ children }: { children: ReactNode }) {
               </button>
             </div>
             <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-              {(user?.role === 'superadmin' ? superadminNav : campaignAdminNav).map(({ to, label, icon: Icon }) => (
+              {superadminNav.map(({ to, label, icon: Icon }) => (
                 <NavLink
                   key={to}
                   to={to}
