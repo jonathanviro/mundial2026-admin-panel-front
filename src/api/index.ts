@@ -250,6 +250,32 @@ export const registrationsApi = {
     window.URL.revokeObjectURL(downloadUrl);
     document.body.removeChild(a);
   },
+  exportEmployeesByPhase: async (params: {
+    campaign_id?: number;
+    phase_id?: number;
+  }) => {
+    const token = localStorage.getItem("auth_token");
+    const qs = new URLSearchParams();
+    if (params.campaign_id) qs.set("campaign_id", String(params.campaign_id));
+    if (params.phase_id) qs.set("phase_id", String(params.phase_id));
+    const url = `${BASE_URL}/registrations/export-employees-by-phase?${qs}`;
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error("Error al exportar reporte");
+    const disposition = response.headers.get('content-disposition') || '';
+    const match = disposition.match(/filename="([^"]+)"/);
+    const filename = match?.[1] || `reporte_${Date.now()}.xlsx`;
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(downloadUrl);
+    document.body.removeChild(a);
+  },
 };
 
 // ── Employees ──────────────────────────────────────────────────────

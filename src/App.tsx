@@ -36,12 +36,12 @@ export default function App() {
           <Route path="/totems"       element={<PrivateRoute><TotemsPage /></PrivateRoute>} />
           <Route path="/employees"    element={<PrivateRoute><EmployeesPage /></PrivateRoute>} />
           <Route path="/phases"       element={<PrivateRoute><PhasesPage /></PrivateRoute>} />
-          <Route path="/matches"      element={<PrivateRoute superadminOnly><MatchesPage /></PrivateRoute>} />
+          <Route path="/matches"      element={<PrivateRoute><MatchesPage /></PrivateRoute>} />
           <Route path="/registrations" element={<PrivateRoute><RegistrationsPage /></PrivateRoute>} />
           <Route path="/winners"      element={<PrivateRoute><WinnersPage /></PrivateRoute>} />
           <Route path="/participants" element={<PrivateRoute><ParticipantsPage /></PrivateRoute>} />
-          <Route path="/campaigns"    element={<PrivateRoute superadminOnly><CampaignsPage /></PrivateRoute>} />
-          <Route path="/users"        element={<PrivateRoute superadminOnly><UsersPage /></PrivateRoute>} />
+          <Route path="/campaigns"    element={<PrivateRoute><CampaignsPage /></PrivateRoute>} />
+          <Route path="/users"        element={<PrivateRoute><UsersPage /></PrivateRoute>} />
 
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
